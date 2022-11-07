@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest tests/",
+    "seed": "node seed.js",
     "start": "node index.js",
     "start-client": "cd pizza_analytics_client & npm run start"
   },
