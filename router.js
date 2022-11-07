@@ -94,7 +94,7 @@ function router(app, db) {
       db.serialize(() => {
         db.run(`INSERT OR IGNORE INTO pizzas(Ingredient) VALUES("${pizza}")`)
         db.run(`INSERT OR IGNORE INTO clients(Name) VALUES("${client}")`)
-        db.run(`INSERT INTO transactions(Pizza, Client, Date) VALUES(
+        db.run(`INSERT INTO consumptions(Pizza, Client, Date) VALUES(
           (SELECT PizzaId from pizzas WHERE Ingredient="${pizza}"),
           (SELECT ClientId from clients WHERE Name="${client}"),
           "${date}"
@@ -156,7 +156,6 @@ function router(app, db) {
         }
         maxOfTheMonth = Math.max(maxOfTheMonth, dailyTotal)
       }
-      console.log(maxOfTheMonth)
       res.status(200).json(maxOfTheMonth)
     })
   })
