@@ -1,4 +1,4 @@
-const { DateTime } = require('luxon')
+const { findMaxConsumption, findStreaks } = require('./helpers');
 
 function router(app, db) {
   
@@ -111,33 +111,14 @@ function router(app, db) {
   })
 
   app.get('/streaks', (req, res) => {
-    db.all('SELECT Date from consumptions ORDER BY Date ASC', (err, consumptions) => {
+    db.all('SELECT Date from consumptions ORDER BY Date ASC', (err, consumptions = []) => {
       if (err) {
         res.status(400).send(err)
         return
       }
-      const consumptionDates = consumptions.map(consumption => consumption.Date);
-      const streaks = {}
-      let currentStreak = 0
-      let latestPizzaSales = 0
-      let previousDate = null
-      for (let i = 0; i < consumptionDates.length; i++) {
-        let currentPizzaSales = 0
-        while(isSameDay(consumptionDates[i+1], consumptionDates[i]) && i < consumptionDates.length) {
-          i++
-          currentPizzaSales++
-        }
+      
+      const streaks = findStreaks(consumptions)
 
-        if (currentPizzaSales > latestPizzaSales && (isOneDayLaterExceptSunday(previousDate, consumptionDates[i]) || previousDate === null)) {
-          currentStreak++
-        } else {
-          currentStreak = 1
-        }
-
-        streaks[consumptionDates[i]] = currentStreak
-        latestPizzaSales = currentPizzaSales
-        previousDate = consumptionDates[i]
-      }
       res.status(200).json(streaks)
     })
   })
@@ -154,34 +135,12 @@ function router(app, db) {
         res.status(500).send(err)
         return
       }
-      const consumptions = consumptionDates.map(consumption => consumption.Date);
-      let maxOfTheMonth = 0
-      let maxConsumptionDay = ''
-      for (let i = 0; i < consumptions.length; i++) {
-        let dailyTotal = 1
-        while(isSameDay(consumptions[i+1], consumptions[i]) && i < consumptions.length) {
-          i++
-          dailyTotal++
-        }
-        if (dailyTotal > maxOfTheMonth) {
-          maxOfTheMonth = dailyTotal
-          maxConsumptionDay = consumptions[i]
-        }
-      }
-      res.status(200).json({ date: maxConsumptionDay, max: maxOfTheMonth })
+      
+      const maxConsumption = findMaxConsumption(consumptionDates);
+
+      res.status(200).json(maxConsumption)
     })
   })
 }
-
-function isOneDayLaterExceptSunday(oldDate, newDate) {
-  return DateTime.fromISO(newDate).diff(DateTime.fromISO(oldDate), 'days').days === 1
-  || (DateTime.fromISO(newDate).diff(DateTime.fromISO(oldDate), 'days').days === 2
-    && DateTime.fromISO(oldDate).weekday === 6)
-}
-
-function isSameDay(date1, date2) {
-  return DateTime.fromISO(date1).startOf('day').equals(DateTime.fromISO(date2).startOf('day'))
-}
-
 
 module.exports = router;
