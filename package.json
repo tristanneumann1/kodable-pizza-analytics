@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest tests/",
-    "postinstall": "cd pizza_analytics_client & npm run install",
+    "postinstall": "cd pizza_analytics_client & npm install",
     "seed": "node seed.js",
     "start": "node index.js",
     "start-client": "cd pizza_analytics_client & npm run start"
