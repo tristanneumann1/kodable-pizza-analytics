@@ -14,15 +14,7 @@ function App() {
   const [streaksState, setStreaks] = useState([])
   const [maxConsumptionState, setMaxConsumption] = useState(0)
 
-  useEffect(() => {
-    // get all clients and all consumptions
-    getClients().then((clients) => {
-      setClients(clients)
-    })
-    getConsumptions().then(consumptions => {
-      setConsumptions(consumptions)
-    })
-  
+  function getMonthlyStats () {
     // get streaks
     getStreaks().then(streaks => {
       setStreaks(streaks)
@@ -35,6 +27,17 @@ function App() {
     getMaxConsumption(currentMonth).then(maxConsumption => {
       setMaxConsumption(maxConsumption)
     })
+  }
+
+  useEffect(() => {
+    // get all clients and all consumptions
+    getClients().then((clients) => {
+      setClients(clients)
+    })
+    getConsumptions().then(consumptions => {
+      setConsumptions(consumptions)
+    })
+    getMonthlyStats()
   }, [])
 
   function addClient(clientName) {
@@ -54,12 +57,14 @@ function App() {
         Client: client,
         Date: (new Date()).toISOString()
       }])
+
+      getMonthlyStats()
     })
   }
 
   return (
     <div className="App">
-      <ClientList clients={clientsState} selectClient={setSelectedClient.bind(this)}/>
+      <ClientList clients={clientsState} selectClient={setSelectedClient.bind(this)} selectedClient={selectedClient}/>
       <AddClient addClient={addClient.bind(this)} />
       <ConsumptionList consumptions={consumptionsState} selectedClient={selectedClient}/>
       <AddConsumption addConsumption={addConsumption.bind(this)} selectedClient={selectedClient} />

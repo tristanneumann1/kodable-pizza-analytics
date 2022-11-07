@@ -12,7 +12,7 @@ function AddClient(props) {
     setClient(event.target.value)
   }
 
-  return <form onSubmit={submitForm}>
+  return <form className="add-client" onSubmit={submitForm}>
       <label>
         New Customer:
         <input type="text" value={client} onChange={onChange} />

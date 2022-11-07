@@ -98,10 +98,16 @@ function router(app, db) {
           (SELECT PizzaId from pizzas WHERE Ingredient="${pizza}"),
           (SELECT ClientId from clients WHERE Name="${client}"),
           "${date}"
-        )`)
+        )`, (err) => {
+          if (err) {
+            res.status(500).send(err)
+          }
+          res.status(201).send('consumed')
+        })
       })
+      return
     }
-    res.status(201).send('consumed')
+    res.status(400).send('missing parameters')
   })
 
   app.get('/streaks', (req, res) => {
@@ -142,21 +148,27 @@ function router(app, db) {
       res.status(400).send('required month not provided')
       return
     }
-    db.all(`SELECT Date FROM consumptions WHERE Date LIKE "${month}%" ORDER BY Date ASC`, (err, consumptionDates) => {
-      const consumptions = consumptionDates.map(consumption => consumption.Date);
+    db.all(`SELECT Date FROM consumptions WHERE Date LIKE "${month}%" ORDER BY Date ASC`, (err, consumptionDates = []) => {
       if (err) {
         console.error(err)
+        res.status(500).send(err)
+        return
       }
-      let maxOfTheMonth = 0;
+      const consumptions = consumptionDates.map(consumption => consumption.Date);
+      let maxOfTheMonth = 0
+      let maxConsumptionDay = ''
       for (let i = 0; i < consumptions.length; i++) {
         let dailyTotal = 1
         while(isSameDay(consumptions[i+1], consumptions[i]) && i < consumptions.length) {
           i++
           dailyTotal++
         }
-        maxOfTheMonth = Math.max(maxOfTheMonth, dailyTotal)
+        if (dailyTotal > maxOfTheMonth) {
+          maxOfTheMonth = dailyTotal
+          maxConsumptionDay = consumptions[i]
+        }
       }
-      res.status(200).json(maxOfTheMonth)
+      res.status(200).json({ date: maxConsumptionDay, max: maxOfTheMonth })
     })
   })
 }

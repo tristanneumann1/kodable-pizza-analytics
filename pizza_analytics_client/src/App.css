@@ -1,38 +1,53 @@
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .App {
+  background-color: #d1e4f1fb;
+  padding: 2em;
+  height: 100%;
   text-align: center;
+  display: grid;
+  /* grid-template-rows: [row1-start] 50% [row2-start] auto [row3-start] auto [row-end];
+  grid-template-columns: [col1-start] 50% [col2-start] 50% [col-end]; */
+
+  grid-template: 
+    [row1-start] "client-list consumption-list" 50% [row1-end]
+    [row2-start] "client-add consumption-add" auto [row2-end]
+    [row3-start] "monthly-report monthly-report" auto [row3-end]
+    / 50% 50%;
+  gap: 1em 1em;
+  place-items: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.client-list {
+  grid-area: client-list;
+  max-height: 100%;
+  overflow: hidden scroll;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.consumption-list {
+  grid-area: consumption-list;
+  max-height: 100%;
+  overflow: hidden scroll;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.add-client {
+  grid-area: client-add;
 }
 
-.App-link {
-  color: #61dafb;
+.add-consumption {
+  grid-area: consumption-add;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.monthly-report {
+  grid-area: monthly-report;
+}
+
+
+
+li.selectedClient {
+  background-color: #F1DED1;
 }

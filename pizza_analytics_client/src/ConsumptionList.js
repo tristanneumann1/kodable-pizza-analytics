@@ -4,7 +4,7 @@ function ConsumptionList(props) {
   ).map(
     consumption => <li key={consumption.ConsumptionId} >{consumption.Client} consumed {consumption.Pizza} on {consumption.Date}</li>
   );
-  return <ul>{consumptionElements}</ul>
+  return <ul className="consumption-list">{consumptionElements}</ul>
 }
 
 export default ConsumptionList

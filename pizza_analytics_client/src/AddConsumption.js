@@ -15,7 +15,7 @@ function AddConsumption(props) {
     setPizza(event.target.value)
   }
 
-  return <form onSubmit={submitForm}>
+  return <form className="add-consumption" onSubmit={submitForm}>
       <label>
         New Consumption:
         <input type="text" value={pizza} onChange={onChange} />
