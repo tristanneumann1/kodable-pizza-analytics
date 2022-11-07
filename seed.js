@@ -1,5 +1,7 @@
+const sqlite3 = require('sqlite3').verbose()
 const { parse } = require('csv-parse')
 const fs = require('fs')
+const db = new sqlite3.Database('./db/pizza-analytics.db')
 
 function seedDatabase(db) {
   fs.readFile('./data.csv', (err, data) => {
@@ -18,29 +20,33 @@ function seedDatabase(db) {
         db.run(`
           CREATE TABLE IF NOT EXISTS pizzas (
             PizzaId INTEGER PRIMARY KEY,
-            Ingredient TEXT);
+            Ingredient TEXT,
+            UNIQUE(Ingredient)
+          );
         `)
         db.run(`
           CREATE TABLE IF NOT EXISTS clients (
             ClientId INTEGER PRIMARY KEY,
-            Name TEXT);
+            Name TEXT,
+            UNIQUE(Name)
+          );
         `)
         db.run(`
-          CREATE TABLE IF NOT EXISTS transactions (
-            TransactionId INTEGER PRIMARY KEY, 
+          CREATE TABLE IF NOT EXISTS consumptions (
+            ConsumptionId INTEGER PRIMARY KEY, 
             Pizza INTEGER,
             Client INTEGER,
             Date TEXT,
             FOREIGN KEY(Pizza) REFERENCES pizzas(PizzaId) ON DELETE CASCADE, 
             FOREIGN KEY(Client) REFERENCES clients(ClientId) ON DELETE CASCADE
-          );`
-        )
+          );
+        `)
 
         const pizzas = new Set()
         const clients = new Set()
         const clientInserts = db.prepare('INSERT INTO clients (Name) VALUES (?)')
         const pizzaInserts = db.prepare('INSERT INTO pizzas (Ingredient) VALUES (?)')
-        const transactionInserts = db.prepare(`INSERT INTO transactions (Client, Pizza, Date) VALUES (
+        const transactionInserts = db.prepare(`INSERT INTO consumptions (Client, Pizza, Date) VALUES (
         (SELECT ClientId from clients WHERE Name=?),
         (SELECT PizzaId from pizzas WHERE Ingredient=?),
         ?
@@ -64,8 +70,10 @@ function seedDatabase(db) {
         pizzaInserts.finalize()
         transactionInserts.finalize()
       })
+
+      db.close()
     })
   })
 }
 
-module.exports = seedDatabase
+seedDatabase(db)
