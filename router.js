@@ -1,3 +1,5 @@
+const { DateTime } = require('luxon')
+
 function router(app, db) {
   
   app.get('/pizzas', (req, res) => {
@@ -101,6 +103,74 @@ function router(app, db) {
     }
     res.status(201).send('consumed')
   })
+
+  app.get('/streaks', (req, res) => {
+    db.all('SELECT Date from consumptions ORDER BY Date ASC', (err, consumptions) => {
+      if (err) {
+        res.status(400).send(err)
+        return
+      }
+      const consumptionDates = consumptions.map(consumption => consumption.Date);
+      const streaks = {}
+      let currentStreak = 0
+      let latestPizzaSales = 0
+      let previousDate = null
+      for (let i = 0; i < consumptionDates.length; i++) {
+        let currentPizzaSales = 0
+        while(isSameDay(consumptionDates[i+1], consumptionDates[i]) && i < consumptionDates.length) {
+          i++
+          currentPizzaSales++
+        }
+
+        if (currentPizzaSales > latestPizzaSales && (isOneDayLaterExceptSunday(previousDate, consumptionDates[i]) || previousDate === null)) {
+          currentStreak++
+        } else {
+          currentStreak = 1
+        }
+
+        streaks[consumptionDates[i]] = currentStreak
+        latestPizzaSales = currentPizzaSales
+        previousDate = consumptionDates[i]
+      }
+      res.status(200).json(streaks)
+    })
+  })
+
+  app.get('/maxConsumption', (req, res) => {
+    let month = req.query?.date
+    if (!month) {
+      res.status(400).send('required month not provided')
+      return
+    }
+    db.all(`SELECT Date FROM consumptions WHERE Date LIKE "${month}%" ORDER BY Date ASC`, (err, consumptionDates) => {
+      const consumptions = consumptionDates.map(consumption => consumption.Date);
+      if (err) {
+        console.error(err)
+      }
+      let maxOfTheMonth = 0;
+      for (let i = 0; i < consumptions.length; i++) {
+        let dailyTotal = 1
+        while(isSameDay(consumptions[i+1], consumptions[i]) && i < consumptions.length) {
+          i++
+          dailyTotal++
+        }
+        maxOfTheMonth = Math.max(maxOfTheMonth, dailyTotal)
+      }
+      console.log(maxOfTheMonth)
+      res.status(200).json(maxOfTheMonth)
+    })
+  })
 }
+
+function isOneDayLaterExceptSunday(oldDate, newDate) {
+  return DateTime.fromISO(newDate).diff(DateTime.fromISO(oldDate), 'days').days === 1
+  || (DateTime.fromISO(newDate).diff(DateTime.fromISO(oldDate), 'days').days === 2
+    && DateTime.fromISO(oldDate).weekday === 6)
+}
+
+function isSameDay(date1, date2) {
+  return DateTime.fromISO(date1).startOf('day').equals(DateTime.fromISO(date2).startOf('day'))
+}
+
 
 module.exports = router;
